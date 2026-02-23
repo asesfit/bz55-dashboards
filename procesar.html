@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BZ55 · Panel de Actualización</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="config.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Unbounded:wght@400;600;800&family=Epilogue:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #07070f;
+  --bg2: #0d0d1a;
+  --card: #10101e;
+  --border: #1c1c32;
+  --border2: #28284a;
+  --accent: #6c63ff;
+  --green: #00e8a2;
+  --gold: #f5c842;
+  --red: #ff4f6e;
+  --text: #eeeef5;
+  --muted: #5a5a80;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Epilogue', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image:
+    linear-gradient(rgba(108,99,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(108,99,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none; z-index: 0;
+}
+
+header {
+  position: relative; z-index: 10;
+  padding: 24px 40px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+.logo { font-family: 'Unbounded', sans-serif; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; }
+.logo span { color: var(--accent); }
+.logo-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; margin-top: 4px; }
+
+main {
+  position: relative; z-index: 1;
+  flex: 1; padding: 48px 40px;
+  max-width: 900px; margin: 0 auto; width: 100%;
+}
+
+h1 {
+  font-family: 'Unbounded', sans-serif;
+  font-size: 1.8rem; font-weight: 800; letter-spacing: -0.03em;
+  margin-bottom: 8px;
+}
+.subtitle {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.68rem; color: var(--muted); letter-spacing: 0.15em;
+  text-transform: uppercase; margin-bottom: 48px;
+}
+
+.step {
+  background: var(--card); border: 1px solid var(--border);
+  padding: 32px; margin-bottom: 20px;
+}
+.step-header {
+  display: flex; align-items: center; gap: 16px; margin-bottom: 20px;
+}
+.step-num {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--accent); color: white;
+  font-family: 'Unbounded', sans-serif; font-size: 0.85rem; font-weight: 600;
+  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+}
+.step-num.done { background: var(--green); color: #000; }
+.step-num.pending { background: var(--border2); color: var(--muted); }
+.step-title {
+  font-family: 'Unbounded', sans-serif; font-size: 0.9rem; font-weight: 600; letter-spacing: -0.01em;
+}
+.step-desc { font-size: 0.82rem; color: var(--muted); margin-top: 3px; }
+
+/* Upload zone */
+.upload-zone {
+  border: 2px dashed var(--border2);
+  padding: 40px; text-align: center; cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+}
+.upload-zone:hover, .upload-zone.drag { border-color: var(--accent); background: rgba(108,99,255,0.04); }
+.upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.upload-icon { font-size: 2.5rem; margin-bottom: 12px; }
+.upload-label { font-family: 'Epilogue', sans-serif; font-size: 0.9rem; font-weight: 500; margin-bottom: 6px; }
+.upload-hint { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--muted); letter-spacing: 0.1em; }
+
+/* Centro selector */
+.centro-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 12px; }
+.centro-btn {
+  padding: 16px 20px; border: 2px solid var(--border2);
+  background: none; color: var(--text); cursor: pointer;
+  font-family: 'Epilogue', sans-serif; font-size: 0.85rem; font-weight: 600;
+  text-align: left; transition: all 0.15s;
+  display: flex; align-items: center; gap: 10px;
+}
+.centro-btn:hover { border-color: var(--accent); }
+.centro-btn.selected { border-color: var(--centro-color, var(--accent)); background: color-mix(in srgb, var(--centro-color, var(--accent)) 8%, transparent); }
+.centro-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--centro-color, var(--accent)); flex-shrink: 0; }
+
+/* Process button */
+.btn-process {
+  width: 100%; padding: 18px;
+  background: var(--accent); color: white; border: none; cursor: pointer;
+  font-family: 'Unbounded', sans-serif; font-size: 0.9rem; font-weight: 600;
+  letter-spacing: -0.01em; transition: all 0.15s;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+}
+.btn-process:hover:not(:disabled) { background: #8079ff; }
+.btn-process:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Log */
+.log-box {
+  background: var(--bg2); border: 1px solid var(--border);
+  padding: 20px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.7rem; line-height: 1.8; max-height: 280px; overflow-y: auto;
+  display: none;
+}
+.log-box.visible { display: block; }
+.log-ok   { color: var(--green); }
+.log-warn { color: var(--gold); }
+.log-err  { color: var(--red); }
+.log-info { color: var(--muted); }
+
+/* Results summary */
+.results-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px;
+  margin-top: 20px; display: none;
+}
+.results-grid.visible { display: grid; }
+.result-card {
+  background: var(--bg2); border: 1px solid var(--border);
+  padding: 16px 18px;
+}
+.result-label { font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+.result-val { font-family: 'Unbounded', sans-serif; font-size: 1.6rem; font-weight: 600; letter-spacing: -0.02em; }
+
+/* Dashboard links */
+.dash-links { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 20px; display: none; }
+.dash-links.visible { display: grid; }
+.dash-link {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  padding: 14px; border: 1px solid var(--border2);
+  color: var(--text); text-decoration: none;
+  font-family: 'Epilogue', sans-serif; font-size: 0.8rem; font-weight: 500;
+  transition: all 0.15s;
+}
+.dash-link:hover { border-color: var(--accent); background: rgba(108,99,255,0.05); }
+
+/* Progress bar */
+.progress-wrap { margin-top: 16px; display: none; }
+.progress-wrap.visible { display: block; }
+.progress-bar { height: 3px; background: var(--border2); border-radius: 1px; overflow: hidden; }
+.progress-fill { height: 100%; background: var(--accent); border-radius: 1px; transition: width 0.3s; width: 0%; }
+.progress-label { font-family: 'JetBrains Mono', monospace; font-size: 0.62rem; color: var(--muted); margin-top: 8px; }
+
+footer {
+  position: relative; z-index: 1;
+  padding: 20px 40px; border-top: 1px solid var(--border);
+  font-family: 'JetBrains Mono', monospace; font-size: 0.58rem; color: var(--muted);
+  letter-spacing: 0.12em; text-transform: uppercase;
+}
+
+@media (max-width: 600px) {
+  header, main, footer { padding-left: 20px; padding-right: 20px; }
+  .dash-links { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="logo">BZ<span>55</span></div>
+    <div class="logo-sub">Panel de Actualización Semanal</div>
+  </div>
+</header>
+
+<main>
+  <h1>Actualizar Dashboards</h1>
+  <p class="subtitle">Carga el Excel del ERP · Los dashboards se actualizan automáticamente</p>
+
+  <!-- STEP 1: Select center -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num" id="num1">1</div>
+      <div>
+        <div class="step-title">Selecciona el centro</div>
+        <div class="step-desc">¿A qué centro pertenece el Excel que vas a subir?</div>
+      </div>
+    </div>
+    <div class="centro-grid" id="centroGrid"></div>
+  </div>
+
+  <!-- STEP 2: Upload Excel -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num pending" id="num2">2</div>
+      <div>
+        <div class="step-title">Sube el Excel del ERP</div>
+        <div class="step-desc">Archivo .xlsx con todo el histórico de transacciones</div>
+      </div>
+    </div>
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept=".xlsx,.xls" />
+      <div class="upload-icon">📊</div>
+      <div class="upload-label">Arrastra el Excel aquí o haz clic para buscarlo</div>
+      <div class="upload-hint">Formato: .xlsx · Hoja: Sheet1 · Columna clave: Elemento2</div>
+    </div>
+    <div class="progress-wrap" id="progressWrap">
+      <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+      <div class="progress-label" id="progressLabel">Procesando...</div>
+    </div>
+  </div>
+
+  <!-- STEP 3: Process & verify -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num pending" id="num3">3</div>
+      <div>
+        <div class="step-title">Procesar y verificar</div>
+        <div class="step-desc">Aplica todos los filtros definidos en config.js y guarda los datos</div>
+      </div>
+    </div>
+    <button class="btn-process" id="btnProcess" disabled>
+      <span id="btnIcon">⚡</span>
+      <span id="btnText">Procesando datos...</span>
+    </button>
+    <div class="log-box" id="logBox"></div>
+    <div class="results-grid" id="resultsGrid"></div>
+  </div>
+
+  <!-- STEP 4: Go to dashboards -->
+  <div class="step">
+    <div class="step-header">
+      <div class="step-num pending" id="num4">4</div>
+      <div>
+        <div class="step-title">Dashboards actualizados</div>
+        <div class="step-desc">Abre y comparte los dashboards</div>
+      </div>
+    </div>
+    <div class="dash-links" id="dashLinks">
+      <a href="dashboard_matriz.html" class="dash-link">🌐 Dashboard Matriz</a>
+      <a href="#" class="dash-link" id="linkCentro">📊 Dashboard del Centro</a>
+      <a href="#" class="dash-link" id="linkShare" onclick="prepareShare(event)">📤 Compartir por Email</a>
+    </div>
+  </div>
+
+</main>
+
+<footer>ASESFIT × BZ55 Fitness Concept · Panel Interno · Solo uso de la Matriz</footer>
+
+<script>
+// ── Build centro selector from config ──
+const centroGrid = document.getElementById('centroGrid');
+let selectedCentro = null;
+let parsedData = null;
+
+BZ55_CONFIG.centros.forEach(c => {
+  const btn = document.createElement('button');
+  btn.className = 'centro-btn';
+  btn.style.setProperty('--centro-color', c.color);
+  btn.innerHTML = `<span class="centro-dot"></span>${c.nombre}`;
+  btn.onclick = () => {
+    document.querySelectorAll('.centro-btn').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+    selectedCentro = c;
+    document.getElementById('num1').classList.add('done');
+    document.getElementById('num1').textContent = '✓';
+    document.getElementById('num2').classList.remove('pending');
+    document.getElementById('num2').classList.add('');
+  };
+  centroGrid.appendChild(btn);
+});
+
+// ── File upload ──
+const fileInput  = document.getElementById('fileInput');
+const uploadZone = document.getElementById('uploadZone');
+
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop', e => {
+  e.preventDefault(); uploadZone.classList.remove('drag');
+  if (e.dataTransfer.files[0]) handleFile(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) handleFile(fileInput.files[0]); });
+
+function handleFile(file) {
+  if (!selectedCentro) {
+    alert('Primero selecciona el centro (paso 1)');
+    return;
+  }
+  const label = uploadZone.querySelector('.upload-label');
+  label.textContent = `📂 ${file.name}`;
+  uploadZone.style.borderColor = 'var(--green)';
+  document.getElementById('num2').classList.add('done');
+  document.getElementById('num2').textContent = '✓';
+  document.getElementById('num3').classList.remove('pending');
+
+  setProgress(10, 'Leyendo archivo...');
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      setProgress(30, 'Parseando Excel...');
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      const sheetName = wb.SheetNames.includes('Sheet1') ? 'Sheet1' : wb.SheetNames[0];
+      const ws = wb.Sheets[sheetName];
+      const rows = XLSX.utils.sheet_to_json(ws, { raw: false, defval: null });
+      setProgress(60, `${rows.length} filas encontradas. Procesando...`);
+      parsedData = processExcel(rows, file.name);
+      setProgress(100, 'Listo');
+      document.getElementById('btnProcess').disabled = false;
+      document.getElementById('btnProcess').innerHTML = `<span>⚡</span><span>Confirmar y guardar datos</span>`;
+    } catch(err) {
+      log('err', `Error al leer el Excel: ${err.message}`);
+      document.getElementById('logBox').classList.add('visible');
+    }
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function setProgress(pct, label) {
+  document.getElementById('progressWrap').classList.add('visible');
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressLabel').textContent = label;
+}
+
+// ── Process Excel rows ──
+function processExcel(rows, filename) {
+  const cfg = BZ55_CONFIG;
+  const C = cfg.columnas;
+
+  log('info', `▸ Procesando ${rows.length} transacciones de "${filename}"`);
+  log('info', `▸ Centro: ${selectedCentro.nombre}`);
+
+  // Group by year+month
+  const monthMap = {};
+
+  rows.forEach(row => {
+    const servicio = (row[C.servicio] || '').trim().toUpperCase();
+    const clientId = row[C.cliente_id];
+    const importe  = parseFloat(row[C.importe]) || 0;
+    let anyo = parseInt(row[C.anyo]);
+    let mes  = parseInt(row[C.mes]);
+
+    // Fallback: derive year/month from Factura date if columns are missing
+    if (!anyo || !mes) {
+      const fecha = row[C.factura_fecha] ? new Date(row[C.factura_fecha]) : null;
+      if (fecha) { anyo = fecha.getFullYear(); mes = fecha.getMonth() + 1; }
+    }
+
+    if (!anyo || !mes || !clientId) return;
+
+    const key = `${anyo}-${String(mes).padStart(2,'0')}`;
+    if (!monthMap[key]) {
+      monthMap[key] = { anyo, mes, clients: new Set(), fact_total: 0, fact_cuotas: 0, pruebas: new Set() };
+    }
+    const m = monthMap[key];
+    m.fact_total += importe;
+
+    const svcOriginal = (row[C.servicio] || '').trim();
+    if (cfg.servicios_validos.has(svcOriginal)) {
+      m.clients.add(String(clientId));
+      m.fact_cuotas += importe;
+    } else if (cfg.servicios_prueba.has(svcOriginal)) {
+      m.pruebas.add(String(clientId));
+    }
+  });
+
+  // Sort months
+  const sortedKeys = Object.keys(monthMap).sort();
+  log('ok', `▸ ${sortedKeys.length} meses encontrados: ${sortedKeys.join(', ')}`);
+
+  // Compute altas/bajas month over month
+  const results = [];
+  let prevClients = new Set();
+
+  sortedKeys.forEach(key => {
+    const m = monthMap[key];
+    const cur = m.clients;
+    const altas = [...cur].filter(id => !prevClients.has(id)).length;
+    const bajas = [...prevClients].filter(id => !cur.has(id)).length;
+    const n     = cur.size;
+    const fc    = Math.round(m.fact_cuotas * 100) / 100;
+    const ft    = Math.round(m.fact_total  * 100) / 100;
+    const ticket = n > 0 ? Math.round((fc / n) * 100) / 100 : 0;
+    const label  = `${cfg.meses[m.mes]} ${String(m.anyo).slice(2)}`;
+
+    results.push({ label, anyo: m.anyo, mes: m.mes, clientes: n, fact_total: ft, fact_cuotas: fc, ticket, altas, bajas, pruebas: m.pruebas.size });
+
+    // Ratio de cierre: pruebas que se convirtieron en clientes activos
+    const convertidos = [...m.pruebas].filter(id => cur.has(id)).length;
+    const ratio = m.pruebas.size > 0 ? Math.round((convertidos / m.pruebas.size) * 100) : null;
+
+    log('ok', `  ${label}: ${n} clientes | Fact.cuotas ${fc.toLocaleString('es-ES')}€ | Altas ${altas} | Bajas ${bajas} | Pruebas ${m.pruebas.size}${ratio !== null ? ` (cierre ${ratio}%)` : ''}`);
+    prevClients = cur;
+  });
+
+  // Servicios no reconocidos (warning)
+  const unknownServices = new Set();
+  rows.forEach(row => {
+    const svc = (row[C.servicio] || '').trim();
+    if (svc && !cfg.servicios_validos.has(svc) && !cfg.servicios_prueba.has(svc) && !cfg.servicios_excluidos.has(svc)) {
+      unknownServices.add(svc);
+    }
+  });
+  if (unknownServices.size > 0) {
+    log('warn', `▸ Servicios no clasificados (van a facturación total): ${[...unknownServices].join(' | ')}`);
+  }
+
+  return results;
+}
+
+// ── Save & finalize ──
+document.getElementById('btnProcess').addEventListener('click', () => {
+  if (!parsedData || !selectedCentro) return;
+  document.getElementById('logBox').classList.add('visible');
+
+  // Save to localStorage
+  const key = `bz55_datos_${selectedCentro.id}`;
+  const payload = {
+    centro_id:  selectedCentro.id,
+    centro:     selectedCentro,
+    updated_at: new Date().toISOString(),
+    meses:      parsedData,
+  };
+  localStorage.setItem(key, JSON.stringify(payload));
+  log('ok', `▸ Datos guardados en localStorage [${key}]`);
+
+  // Mark step 3 done
+  document.getElementById('num3').classList.add('done');
+  document.getElementById('num3').textContent = '✓';
+  document.getElementById('num4').classList.remove('pending');
+
+  // Show summary
+  const last = parsedData[parsedData.length - 1];
+  const prev = parsedData.length > 1 ? parsedData[parsedData.length - 2] : null;
+  showResults(last, prev);
+
+  // Show dashboard links
+  const dashLinks = document.getElementById('dashLinks');
+  dashLinks.classList.add('visible');
+  document.getElementById('linkCentro').href = `dashboard_${selectedCentro.id.toLowerCase()}.html`;
+  document.getElementById('linkCentro').textContent = `📊 ${selectedCentro.nombre}`;
+
+  document.getElementById('num4').classList.add('done');
+  document.getElementById('num4').textContent = '✓';
+  document.getElementById('btnProcess').innerHTML = '<span>✓</span><span>Datos guardados correctamente</span>';
+  document.getElementById('btnProcess').style.background = 'var(--green)';
+  document.getElementById('btnProcess').style.color = '#000';
+  document.getElementById('btnProcess').disabled = true;
+});
+
+function showResults(last, prev) {
+  const grid = document.getElementById('resultsGrid');
+  grid.classList.add('visible');
+
+  const fmt = (n, decimals=0) => n != null ? n.toLocaleString('es-ES', {minimumFractionDigits: decimals, maximumFractionDigits: decimals}) : '—';
+  const delta = (cur, pre, suffix='') => pre != null ? `<span style="color:${cur>=pre?'var(--green)':'var(--red)'}">${cur>=pre?'▲':'▼'} ${fmt(Math.abs(cur-pre))}${suffix}</span>` : '';
+
+  grid.innerHTML = `
+    <div class="result-card">
+      <div class="result-label">Último mes</div>
+      <div class="result-val" style="font-size:1rem">${last.label}</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">Clientes activos</div>
+      <div class="result-val" style="color:${selectedCentro.color}">${last.clientes}</div>
+      <div style="font-size:0.65rem;margin-top:4px;font-family:'JetBrains Mono',monospace">${delta(last.clientes, prev?.clientes)} vs mes ant.</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">Fact. cuotas</div>
+      <div class="result-val">${fmt(last.fact_cuotas, 0)}€</div>
+      <div style="font-size:0.65rem;margin-top:4px;font-family:'JetBrains Mono',monospace">${delta(last.fact_cuotas, prev?.fact_cuotas, '€')} vs mes ant.</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">Ticket medio</div>
+      <div class="result-val">${fmt(last.ticket, 2)}€</div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">Altas / Bajas</div>
+      <div class="result-val" style="font-size:1.4rem"><span style="color:var(--green)">+${last.altas}</span> / <span style="color:var(--red)">-${last.bajas}</span></div>
+    </div>
+    <div class="result-card">
+      <div class="result-label">Sesiones prueba</div>
+      <div class="result-val">${last.pruebas}</div>
+    </div>
+  `;
+}
+
+function prepareShare(e) {
+  e.preventDefault();
+  if (!selectedCentro) return;
+  const subject = encodeURIComponent(`BZ55 ${selectedCentro.nombre} · Dashboard actualizado`);
+  const body    = encodeURIComponent(`Hola,\n\nTe comparto el dashboard actualizado del centro ${selectedCentro.nombre}.\n\nUn saludo`);
+  window.location.href = `mailto:${selectedCentro.destinatarios.email}?subject=${subject}&body=${body}`;
+}
+
+function log(type, msg) {
+  const box = document.getElementById('logBox');
+  box.classList.add('visible');
+  const line = document.createElement('div');
+  line.className = `log-${type}`;
+  const prefix = { ok: '✓', warn: '⚠', err: '✗', info: '·' }[type] || '·';
+  line.textContent = `${prefix} ${msg}`;
+  box.appendChild(line);
+  box.scrollTop = box.scrollHeight;
+}
+</script>
+</body>
+</html>

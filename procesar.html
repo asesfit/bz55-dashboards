@@ -474,7 +474,21 @@ function handleFile(file) {
       const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true, cellNF: false, cellText: false });
       const sheetName = wb.SheetNames.includes('Sheet1') ? 'Sheet1' : wb.SheetNames[0];
       const ws = wb.Sheets[sheetName];
-      const rows = XLSX.utils.sheet_to_json(ws, { raw: true, defval: null });
+
+      // Auto-detect header row: find the row that contains 'Elemento2' and 'Cliente (ID)'
+      // The export format has metadata rows at the top before the actual headers
+      const range = XLSX.utils.decode_range(ws['!ref']);
+      let headerRow = 0; // 0-indexed
+      for (let r = range.s.r; r <= Math.min(range.s.r + 15, range.e.r); r++) {
+        for (let c = range.s.c; c <= range.e.c; c++) {
+          const cell = ws[XLSX.utils.encode_cell({r, c})];
+          if (cell && cell.v === 'Elemento2') { headerRow = r; break; }
+        }
+        if (headerRow > 0) break;
+      }
+
+      log('info', `▸ Cabeceras detectadas en fila ${headerRow + 1}`);
+      const rows = XLSX.utils.sheet_to_json(ws, { raw: true, defval: null, range: headerRow });
       setProgress(60, `${rows.length} filas encontradas. Procesando...`);
       parsedData = processExcel(rows, file.name);
       setProgress(100, 'Listo');

@@ -68,10 +68,10 @@ const BZ55_CONFIG = {
     cliente_id:     'Cliente (ID)',
     servicio:       'Elemento2',
     importe:        'Total sin IVA',
-    anyo:           'Año',
-    mes:            'Mes',
-    factura_fecha:  'Factura',
-    centro_id:      null,   // Si el Excel lleva columna de centro, ponla aquí
+    fecha_mes:      'Valor',     // Fecha del 1º día del mes — siempre tiene valor real
+    anyo:           'Año',       // Columna fórmula — fallback si Valor no está
+    mes:            'Mes',       // Columna fórmula — fallback si Valor no está
+    centro_id:      null,
   },
 
   // ─────────────────────────────────────────────────────────────
@@ -471,10 +471,10 @@ function handleFile(file) {
   reader.onload = e => {
     try {
       setProgress(30, 'Parseando Excel...');
-      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true });
+      const wb = XLSX.read(e.target.result, { type: 'array', cellDates: true, cellNF: false, cellText: false });
       const sheetName = wb.SheetNames.includes('Sheet1') ? 'Sheet1' : wb.SheetNames[0];
       const ws = wb.Sheets[sheetName];
-      const rows = XLSX.utils.sheet_to_json(ws, { raw: false, defval: null });
+      const rows = XLSX.utils.sheet_to_json(ws, { raw: true, defval: null });
       setProgress(60, `${rows.length} filas encontradas. Procesando...`);
       parsedData = processExcel(rows, file.name);
       setProgress(100, 'Listo');
@@ -495,6 +495,29 @@ function setProgress(pct, label) {
 }
 
 // ── Process Excel rows ──
+function parseDate(val) {
+  if (!val) return null;
+  // Already a JS Date
+  if (val instanceof Date && !isNaN(val)) return val;
+  // Excel serial number (number)
+  if (typeof val === 'number') {
+    // Excel epoch: Dec 30 1899
+    const d = new Date((val - 25569) * 86400 * 1000);
+    if (!isNaN(d)) return d;
+  }
+  // String formats: "2025-01-01", "01/01/2025", "2025-1-1 0:00:00"
+  if (typeof val === 'string') {
+    const s = val.trim();
+    // Try direct parse
+    const d = new Date(s);
+    if (!isNaN(d)) return d;
+    // dd/mm/yyyy
+    const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+    if (m) return new Date(parseInt(m[3]), parseInt(m[2])-1, parseInt(m[1]));
+  }
+  return null;
+}
+
 function processExcel(rows, filename) {
   const cfg = BZ55_CONFIG;
   const C = cfg.columnas;
@@ -502,20 +525,40 @@ function processExcel(rows, filename) {
   log('info', `▸ Procesando ${rows.length} transacciones de "${filename}"`);
   log('info', `▸ Centro: ${selectedCentro.nombre}`);
 
+  // Detect all column names from first row for debugging
+  if (rows.length > 0) {
+    const cols = Object.keys(rows[0]);
+    log('info', `▸ Columnas detectadas: ${cols.slice(0,10).join(', ')}...`);
+    const r0 = rows[0];
+    log('info', `▸ Fila 1 — Elemento2: "${r0[C.servicio]}" | ClienteID: ${r0[C.cliente_id]} | Valor: ${r0[C.fecha_mes]} | Año: ${r0[C.anyo]} | Mes: ${r0[C.mes]}`);
+  }
+
   // Group by year+month
   const monthMap = {};
 
   rows.forEach(row => {
-    const servicio = (row[C.servicio] || '').trim().toUpperCase();
     const clientId = row[C.cliente_id];
-    const importe  = parseFloat(row[C.importe]) || 0;
-    let anyo = parseInt(row[C.anyo]);
-    let mes  = parseInt(row[C.mes]);
+    const importe  = parseFloat(String(row[C.importe] || '0').replace(',','.')) || 0;
 
-    // Fallback: derive year/month from Factura date if columns are missing
-    if (!anyo || !mes) {
-      const fecha = row[C.factura_fecha] ? new Date(row[C.factura_fecha]) : null;
-      if (fecha) { anyo = fecha.getFullYear(); mes = fecha.getMonth() + 1; }
+    // Año/Mes — usar columna Valor (primer día del mes, siempre real)
+    // Si no está disponible, intentar con columnas Año/Mes o parsear otras fechas
+    let anyo, mes;
+
+    const fechaValor = parseDate(row[C.fecha_mes]);
+    if (fechaValor && fechaValor.getFullYear() > 2000) {
+      anyo = fechaValor.getFullYear();
+      mes  = fechaValor.getMonth() + 1;
+    } else {
+      // Fallback: columnas Año y Mes si son numéricas (no fórmula)
+      const anyoRaw = parseInt(row[C.anyo]);
+      const mesRaw  = parseInt(row[C.mes]);
+      if (anyoRaw > 2000 && mesRaw >= 1 && mesRaw <= 12) {
+        anyo = anyoRaw; mes = mesRaw;
+      } else {
+        // Último recurso: columna Venta o Pago
+        const fechaAlt = parseDate(row['Venta']) || parseDate(row['Pago']);
+        if (fechaAlt) { anyo = fechaAlt.getFullYear(); mes = fechaAlt.getMonth() + 1; }
+      }
     }
 
     if (!anyo || !mes || !clientId) return;

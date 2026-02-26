@@ -679,7 +679,7 @@ function buildCentroView(c) {
         <div style="font-family:'Unbounded',sans-serif;font-size:2rem;font-weight:800;letter-spacing:-0.04em;line-height:1;color:${c.color}">${c.nombre}</div>
         <div style="font-family:'JetBrains Mono',monospace;font-size:0.62rem;color:var(--muted);margin-top:6px;letter-spacing:0.1em">${c.ciudad} · Activo desde ${c.apertura} · ${meses.length} meses de datos</div>
       </div>
-      <a href="dashboard_${c.id.toLowerCase()}.html" style="padding:10px 18px;background:${c.color};color:white;text-decoration:none;font-family:'Epilogue',sans-serif;font-size:0.75rem;font-weight:600">Ver dashboard completo →</a>
+      <a href="dashboard_${c.id}.html" style="padding:10px 18px;background:${c.color};color:white;text-decoration:none;font-family:'Epilogue',sans-serif;font-size:0.75rem;font-weight:600">Ver dashboard completo →</a>
     </div>
 
     ${c.estado==='rescate'?`<div class="no-data-banner" style="background:rgba(255,79,110,.06);border-color:rgba(255,79,110,.3);color:var(--red);margin-bottom:20px">⚠ &nbsp; Programa de rescate activo · ${c.objetivo_clientes - last.clientes} clientes para el objetivo</div>`:''}

@@ -538,18 +538,32 @@ if (!centro) {
   document.title = `BZ55 · ${centro.nombre} · Dashboard`;
   document.getElementById('footerCentro').textContent = `${centro.nombre} · ${centro.ciudad}`;
 
-  // Load data from localStorage
-  const raw = localStorage.getItem(`bz55_datos_${centroId}`);
-  if (!raw) {
-    document.getElementById('noDataState').style.display = 'flex';
-  } else {
-    const payload = JSON.parse(raw);
-    const updated = new Date(payload.updated_at);
-    document.getElementById('updatePill').textContent = `Actualizado ${updated.toLocaleDateString('es-ES')}`;
-    document.getElementById('noDataState').style.display = 'none';
-    document.getElementById('dashMain').style.display   = 'block';
-    initDashboard(payload.meses, centro);
-  }
+  // Load data from GitHub (fallback to localStorage)
+  const GITHUB_RAW = `https://raw.githubusercontent.com/asesfit/bz55-dashboards/main/datos_${centroId}.json`;
+  console.log('BZ55: centroId detectado =', centroId);
+  console.log('BZ55: URL a cargar =', GITHUB_RAW);
+  document.getElementById('updatePill').textContent = 'Cargando datos...';
+  fetch(GITHUB_RAW + '?t=' + Date.now())
+    .then(r => {
+      console.log('BZ55: fetch status =', r.status, r.ok);
+      if (!r.ok) throw new Error('not found');
+      return r.json();
+    })
+    .catch((err) => {
+      console.log('BZ55: fetch falló, probando localStorage. Error:', err.message);
+      const raw = localStorage.getItem(`bz55_datos_${centroId}`);
+      if (!raw) return null;
+      return JSON.parse(raw);
+    })
+    .then(payload => {
+      console.log('BZ55: payload recibido =', payload ? 'OK (' + (payload.meses?.length) + ' meses)' : 'NULL');
+      if (!payload) { document.getElementById('noDataState').style.display = 'flex'; return; }
+      const updated = new Date(payload.updated_at);
+      document.getElementById('updatePill').textContent = `Actualizado ${updated.toLocaleDateString('es-ES')}`;
+      document.getElementById('noDataState').style.display = 'none';
+      document.getElementById('dashMain').style.display   = 'block';
+      initDashboard(payload.meses, centro);
+    });
 }
 
 // ─────────────────────────────────────────────

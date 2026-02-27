@@ -390,6 +390,14 @@ footer {
         <div class="step-desc">Aplica todos los filtros definidos en config.js y guarda los datos</div>
       </div>
     </div>
+    <div style="margin-bottom:14px">
+      <label style="font-family:'JetBrains Mono',monospace;font-size:0.6rem;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:8px">Token de acceso GitHub</label>
+      <input type="password" id="githubToken" placeholder="ghp_..." autocomplete="off"
+        style="width:100%;background:var(--bg2);border:1px solid var(--border2);color:var(--text);padding:12px 16px;font-family:'JetBrains Mono',monospace;font-size:0.75rem;outline:none;"
+        oninput="document.getElementById('btnProcess').disabled = !this.value.trim() || !parsedData"
+      />
+      <div style="font-family:'JetBrains Mono',monospace;font-size:0.58rem;color:var(--muted);margin-top:6px">Solo tú lo introduces. No se guarda ni se sube a ningún sitio.</div>
+    </div>
     <button class="btn-process" id="btnProcess" disabled>
       <span id="btnIcon">⚡</span>
       <span id="btnText">Procesando datos...</span>
@@ -494,6 +502,10 @@ function handleFile(file) {
       setProgress(100, 'Listo');
       document.getElementById('btnProcess').disabled = false;
       document.getElementById('btnProcess').innerHTML = `<span>⚡</span><span>Confirmar y guardar datos</span>`;
+      // Re-check: only fully enable if token is also present
+      if (!document.getElementById('githubToken').value.trim()) {
+        document.getElementById('btnProcess').disabled = true;
+      }
     } catch(err) {
       log('err', `Error al leer el Excel: ${err.message}`);
       document.getElementById('logBox').classList.add('visible');
@@ -638,43 +650,102 @@ function processExcel(rows, filename) {
 }
 
 // ── Save & finalize ──
-document.getElementById('btnProcess').addEventListener('click', () => {
+document.getElementById('btnProcess').addEventListener('click', async () => {
   if (!parsedData || !selectedCentro) return;
   document.getElementById('logBox').classList.add('visible');
 
-  // Save to localStorage
-  const key = `bz55_datos_${selectedCentro.id}`;
+  const GITHUB_TOKEN = document.getElementById('githubToken').value.trim();
+  const GITHUB_REPO  = 'asesfit/bz55-dashboards';
+  const filename     = `datos_${selectedCentro.id}.json`;
+
   const payload = {
     centro_id:  selectedCentro.id,
     centro:     selectedCentro,
     updated_at: new Date().toISOString(),
     meses:      parsedData,
   };
-  localStorage.setItem(key, JSON.stringify(payload));
-  log('ok', `▸ Datos guardados en localStorage [${key}]`);
 
-  // Mark step 3 done
-  document.getElementById('num3').classList.add('done');
-  document.getElementById('num3').textContent = '✓';
-  document.getElementById('num4').classList.remove('pending');
+  // Also save locally as fallback
+  localStorage.setItem(`bz55_datos_${selectedCentro.id}`, JSON.stringify(payload));
 
-  // Show summary
-  const last = parsedData[parsedData.length - 1];
-  const prev = parsedData.length > 1 ? parsedData[parsedData.length - 2] : null;
-  showResults(last, prev);
-
-  // Show dashboard links
-  const dashLinks = document.getElementById('dashLinks');
-  dashLinks.classList.add('visible');
-  document.getElementById('linkCentro').href = `dashboard_${selectedCentro.id}.html`;
-  document.getElementById('linkCentro').textContent = `📊 ${selectedCentro.nombre}`;
-
-  document.getElementById('num4').classList.add('done');
-  document.getElementById('num4').textContent = '✓';
-  document.getElementById('btnProcess').innerHTML = '<span>✓</span><span>Datos guardados correctamente</span>';
-  document.getElementById('btnProcess').style.background = 'var(--green)';
-  document.getElementById('btnProcess').style.color = '#000';
+  // Save to GitHub
+  log('info', `▸ Subiendo datos a GitHub (${filename})...`);
+  document.getElementById('btnProcess').innerHTML = '<span>⏳</span><span>Guardando en GitHub...</span>';
   document.getElementById('btnProcess').disabled = true;
+
+  try {
+    // First check if file exists to get its SHA (needed for updates)
+    let sha = null;
+    const checkRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${filename}`, {
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+      }
+    });
+    if (checkRes.ok) {
+      const existing = await checkRes.json();
+      sha = existing.sha;
+      log('info', `▸ Archivo existente encontrado, actualizando...`);
+    } else {
+      log('info', `▸ Archivo nuevo, creando...`);
+    }
+
+    // Upload file
+    const content = btoa(unescape(encodeURIComponent(JSON.stringify(payload, null, 2))));
+    const body = {
+      message: `Actualización ${selectedCentro.nombre} · ${new Date().toLocaleDateString('es-ES')}`,
+      content,
+      ...(sha ? { sha } : {}),
+    };
+
+    const uploadRes = await fetch(`https://api.github.com/repos/${GITHUB_REPO}/contents/${filename}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': `token ${GITHUB_TOKEN}`,
+        'Accept': 'application/vnd.github.v3+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    if (uploadRes.ok) {
+      log('ok', `▸ ¡Datos guardados en GitHub correctamente!`);
+      log('ok', `▸ Los dashboards ya muestran los datos actualizados para todos`);
+
+      // Mark steps done
+      document.getElementById('num3').classList.add('done');
+      document.getElementById('num3').textContent = '✓';
+      document.getElementById('num4').classList.remove('pending');
+      document.getElementById('num4').classList.add('done');
+      document.getElementById('num4').textContent = '✓';
+
+      // Show summary
+      const last = parsedData[parsedData.length - 1];
+      const prev = parsedData.length > 1 ? parsedData[parsedData.length - 2] : null;
+      showResults(last, prev);
+
+      // Show dashboard links
+      const dashLinks = document.getElementById('dashLinks');
+      dashLinks.classList.add('visible');
+      document.getElementById('linkCentro').href = `dashboard_${selectedCentro.id}.html`;
+      document.getElementById('linkCentro').textContent = `📊 ${selectedCentro.nombre}`;
+
+      document.getElementById('btnProcess').innerHTML = '<span>✓</span><span>Datos guardados en GitHub</span>';
+      document.getElementById('btnProcess').style.background = 'var(--green)';
+      document.getElementById('btnProcess').style.color = '#000';
+
+    } else {
+      const err = await uploadRes.json();
+      throw new Error(err.message || uploadRes.statusText);
+    }
+
+  } catch(err) {
+    log('err', `▸ Error al guardar en GitHub: ${err.message}`);
+    log('warn', `▸ Los datos se han guardado localmente en este navegador como respaldo`);
+    document.getElementById('btnProcess').innerHTML = '<span>⚠</span><span>Error — ver log</span>';
+    document.getElementById('btnProcess').style.background = 'var(--red)';
+    document.getElementById('btnProcess').disabled = false;
+  }
 });
 
 function showResults(last, prev) {

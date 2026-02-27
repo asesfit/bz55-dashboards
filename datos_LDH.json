@@ -1,0 +1,79 @@
+{
+  "centro_id": "LDH",
+  "centro": {
+    "id": "LDH",
+    "nombre": "López de Hoyos",
+    "ciudad": "Madrid",
+    "color": "#f5c842",
+    "objetivo_clientes": 150,
+    "estado": "rescate",
+    "apertura": "Noviembre 2025",
+    "destinatarios": {
+      "email": "mfernandez@gaiagd.com, apastoriza@transgalaica.com, josemanuelamadoabelenda@gmail.com, miguel.lozano.garrido@gmail.com",
+      "whatsapp": "+34683460933"
+    }
+  },
+  "updated_at": "2026-02-27T13:11:31.700Z",
+  "meses": [
+    {
+      "label": "Oct 25",
+      "anyo": 2025,
+      "mes": 10,
+      "clientes": 2,
+      "fact_total": 203.32,
+      "fact_cuotas": 0,
+      "ticket": 0,
+      "altas": 2,
+      "bajas": 0,
+      "pruebas": 8
+    },
+    {
+      "label": "Nov 25",
+      "anyo": 2025,
+      "mes": 11,
+      "clientes": 95,
+      "fact_total": 6658.55,
+      "fact_cuotas": 6253.58,
+      "ticket": 65.83,
+      "altas": 93,
+      "bajas": 0,
+      "pruebas": 8
+    },
+    {
+      "label": "Dic 25",
+      "anyo": 2025,
+      "mes": 12,
+      "clientes": 88,
+      "fact_total": 6470.62,
+      "fact_cuotas": 5939.6,
+      "ticket": 67.5,
+      "altas": 17,
+      "bajas": 24,
+      "pruebas": 18
+    },
+    {
+      "label": "Ene 26",
+      "anyo": 2026,
+      "mes": 1,
+      "clientes": 113,
+      "fact_total": 8264.17,
+      "fact_cuotas": 7617.89,
+      "ticket": 67.41,
+      "altas": 36,
+      "bajas": 11,
+      "pruebas": 71
+    },
+    {
+      "label": "Feb 26",
+      "anyo": 2026,
+      "mes": 2,
+      "clientes": 118,
+      "fact_total": 8961.56,
+      "fact_cuotas": 8428.45,
+      "ticket": 71.43,
+      "altas": 17,
+      "bajas": 12,
+      "pruebas": 36
+    }
+  ]
+}

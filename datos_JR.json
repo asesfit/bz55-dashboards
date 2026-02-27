@@ -1,0 +1,187 @@
+{
+  "centro_id": "JR",
+  "centro": {
+    "id": "JR",
+    "nombre": "Julián Romea",
+    "ciudad": "Madrid",
+    "color": "#6c63ff",
+    "objetivo_clientes": 150,
+    "estado": "estable",
+    "apertura": "Octubre 2024",
+    "destinatarios": {
+      "email": "mdemiguel@bz-55.com, Rwirz@bz-55.com, miguel.lozano.garrido@gmail.com",
+      "whatsapp": "+34683460933"
+    }
+  },
+  "updated_at": "2026-02-27T13:10:19.285Z",
+  "meses": [
+    {
+      "label": "Ene 25",
+      "anyo": 2025,
+      "mes": 1,
+      "clientes": 105,
+      "fact_total": 12040.03,
+      "fact_cuotas": 10596.64,
+      "ticket": 100.92,
+      "altas": 105,
+      "bajas": 0,
+      "pruebas": 34
+    },
+    {
+      "label": "Feb 25",
+      "anyo": 2025,
+      "mes": 2,
+      "clientes": 115,
+      "fact_total": 11349.04,
+      "fact_cuotas": 10196.93,
+      "ticket": 88.67,
+      "altas": 34,
+      "bajas": 24,
+      "pruebas": 39
+    },
+    {
+      "label": "Mar 25",
+      "anyo": 2025,
+      "mes": 3,
+      "clientes": 123,
+      "fact_total": 13946.05,
+      "fact_cuotas": 12237.56,
+      "ticket": 99.49,
+      "altas": 25,
+      "bajas": 17,
+      "pruebas": 26
+    },
+    {
+      "label": "Abr 25",
+      "anyo": 2025,
+      "mes": 4,
+      "clientes": 104,
+      "fact_total": 11845.47,
+      "fact_cuotas": 10808.77,
+      "ticket": 103.93,
+      "altas": 13,
+      "bajas": 32,
+      "pruebas": 13
+    },
+    {
+      "label": "May 25",
+      "anyo": 2025,
+      "mes": 5,
+      "clientes": 96,
+      "fact_total": 10955.3,
+      "fact_cuotas": 9865.3,
+      "ticket": 102.76,
+      "altas": 13,
+      "bajas": 21,
+      "pruebas": 11
+    },
+    {
+      "label": "Jun 25",
+      "anyo": 2025,
+      "mes": 6,
+      "clientes": 93,
+      "fact_total": 10434.65,
+      "fact_cuotas": 9262,
+      "ticket": 99.59,
+      "altas": 15,
+      "bajas": 18,
+      "pruebas": 19
+    },
+    {
+      "label": "Jul 25",
+      "anyo": 2025,
+      "mes": 7,
+      "clientes": 75,
+      "fact_total": 6836.73,
+      "fact_cuotas": 6014.45,
+      "ticket": 80.19,
+      "altas": 9,
+      "bajas": 27,
+      "pruebas": 15
+    },
+    {
+      "label": "Ago 25",
+      "anyo": 2025,
+      "mes": 8,
+      "clientes": 49,
+      "fact_total": 4898.38,
+      "fact_cuotas": 4279.87,
+      "ticket": 87.34,
+      "altas": 4,
+      "bajas": 30,
+      "pruebas": 6
+    },
+    {
+      "label": "Sep 25",
+      "anyo": 2025,
+      "mes": 9,
+      "clientes": 78,
+      "fact_total": 8064.03,
+      "fact_cuotas": 7184.32,
+      "ticket": 92.11,
+      "altas": 42,
+      "bajas": 13,
+      "pruebas": 27
+    },
+    {
+      "label": "Oct 25",
+      "anyo": 2025,
+      "mes": 10,
+      "clientes": 119,
+      "fact_total": 10424.96,
+      "fact_cuotas": 9531.58,
+      "ticket": 80.1,
+      "altas": 56,
+      "bajas": 15,
+      "pruebas": 24
+    },
+    {
+      "label": "Nov 25",
+      "anyo": 2025,
+      "mes": 11,
+      "clientes": 107,
+      "fact_total": 9332.74,
+      "fact_cuotas": 8161.98,
+      "ticket": 76.28,
+      "altas": 26,
+      "bajas": 38,
+      "pruebas": 21
+    },
+    {
+      "label": "Dic 25",
+      "anyo": 2025,
+      "mes": 12,
+      "clientes": 111,
+      "fact_total": 9105.66,
+      "fact_cuotas": 8720.56,
+      "ticket": 78.56,
+      "altas": 16,
+      "bajas": 12,
+      "pruebas": 8
+    },
+    {
+      "label": "Ene 26",
+      "anyo": 2026,
+      "mes": 1,
+      "clientes": 118,
+      "fact_total": 11092.47,
+      "fact_cuotas": 9599.94,
+      "ticket": 81.36,
+      "altas": 28,
+      "bajas": 21,
+      "pruebas": 38
+    },
+    {
+      "label": "Feb 26",
+      "anyo": 2026,
+      "mes": 2,
+      "clientes": 155,
+      "fact_total": 13742.68,
+      "fact_cuotas": 12465.84,
+      "ticket": 80.42,
+      "altas": 48,
+      "bajas": 11,
+      "pruebas": 41
+    }
+  ]
+}

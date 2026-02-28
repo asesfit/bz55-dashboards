@@ -400,24 +400,47 @@ footer {
 // ─────────────────────────────────────────────────────
 const allData = {}; // centroId → payload.meses array
 
-BZ55_CONFIG.centros.forEach(c => {
-  const raw = localStorage.getItem(`bz55_datos_${c.id}`);
-  if (raw) {
-    try { allData[c.id] = JSON.parse(raw).meses; } catch(e) {}
-  }
-});
+async function loadAllCentros() {
+  await Promise.all(BZ55_CONFIG.centros.map(async c => {
+    const url = `https://raw.githubusercontent.com/asesfit/bz55-dashboards/main/datos_${c.id}.json?t=${Date.now()}`;
+    console.log(`BZ55 Matriz: cargando ${c.id} desde`, url);
+    try {
+      const r = await fetch(url);
+      console.log(`BZ55 Matriz: ${c.id} fetch status =`, r.status, r.ok);
+      if (r.ok) {
+        const payload = await r.json();
+        allData[c.id] = payload.meses;
+        console.log(`BZ55 Matriz: ${c.id} OK — ${payload.meses?.length} meses`);
+        return;
+      }
+    } catch(e) { console.log(`BZ55 Matriz: ${c.id} error =`, e.message); }
+    // Fallback to localStorage
+    const raw = localStorage.getItem(`bz55_datos_${c.id}`);
+    if (raw) {
+      try { allData[c.id] = JSON.parse(raw).meses; console.log(`BZ55 Matriz: ${c.id} cargado desde localStorage`); } catch(e) {}
+    }
+  }));
 
-const loadedCentros = BZ55_CONFIG.centros.filter(c => allData[c.id]);
-const totalCentros  = loadedCentros.length;
+  const loadedCentros = BZ55_CONFIG.centros.filter(c => allData[c.id]);
+  const totalCentros  = loadedCentros.length;
+  console.log(`BZ55 Matriz: ${totalCentros} centros cargados`);
 
-// Update header
-document.getElementById('netCount').textContent = `${totalCentros} centro${totalCentros !== 1 ? 's' : ''} activo${totalCentros !== 1 ? 's' : ''}`;
-document.getElementById('updateLabel').textContent = `Actualizado ${new Date().toLocaleDateString('es-ES')}`;
-document.getElementById('footerDate').textContent = `Vista Matriz · ${new Date().toLocaleDateString('es-ES',{month:'long',year:'numeric'})}`;
-
-if (totalCentros === 0) {
-  document.getElementById('noDataMsg').style.display = 'block';
+  document.getElementById('netCount').textContent = `${totalCentros} centro${totalCentros !== 1 ? 's' : ''} activo${totalCentros !== 1 ? 's' : ''}`;
+  document.getElementById('updateLabel').textContent = `Actualizado ${new Date().toLocaleDateString('es-ES')}`;
+  initMatriz();
 }
+
+loadAllCentros();
+
+function initMatriz() {
+  const loadedCentros = BZ55_CONFIG.centros.filter(c => allData[c.id]);
+  const totalCentros  = loadedCentros.length;
+
+  document.getElementById('footerDate').textContent = `Vista Matriz · ${new Date().toLocaleDateString('es-ES',{month:'long',year:'numeric'})}`;
+
+  if (totalCentros === 0) {
+    document.getElementById('noDataMsg').style.display = 'block';
+  }
 
 // ─────────────────────────────────────────────────────
 //  BUILD NAV TABS + CENTER VIEWS DYNAMICALLY
@@ -536,6 +559,8 @@ if (totalCentros > 0) {
   // Rankings
   buildRankings(lastMeses);
 }
+
+} // end initMatriz
 
 // ─────────────────────────────────────────────────────
 //  COMPARATIVE CHARTS

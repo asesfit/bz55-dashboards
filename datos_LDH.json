@@ -13,17 +13,17 @@
       "whatsapp": "+34683460933"
     }
   },
-  "updated_at": "2026-02-28T11:23:10.778Z",
+  "updated_at": "2026-03-05T10:15:11.016Z",
   "meses": [
     {
       "label": "Oct 25",
       "anyo": 2025,
       "mes": 10,
-      "clientes": 2,
+      "clientes": 4,
       "fact_total": 203.32,
-      "fact_cuotas": 0,
-      "ticket": 0,
-      "altas": 2,
+      "fact_cuotas": 66.12,
+      "ticket": 16.53,
+      "altas": 4,
       "bajas": 0,
       "pruebas": 8
     },
@@ -31,10 +31,10 @@
       "label": "Nov 25",
       "anyo": 2025,
       "mes": 11,
-      "clientes": 95,
+      "clientes": 97,
       "fact_total": 6658.55,
-      "fact_cuotas": 6253.58,
-      "ticket": 65.83,
+      "fact_cuotas": 6478.38,
+      "ticket": 66.79,
       "altas": 93,
       "bajas": 0,
       "pruebas": 8
@@ -43,22 +43,22 @@
       "label": "Dic 25",
       "anyo": 2025,
       "mes": 12,
-      "clientes": 88,
+      "clientes": 89,
       "fact_total": 6470.62,
-      "fact_cuotas": 5939.6,
-      "ticket": 67.5,
+      "fact_cuotas": 6098.28,
+      "ticket": 68.52,
       "altas": 17,
-      "bajas": 24,
+      "bajas": 25,
       "pruebas": 18
     },
     {
       "label": "Ene 26",
       "anyo": 2026,
       "mes": 1,
-      "clientes": 113,
+      "clientes": 114,
       "fact_total": 8264.17,
-      "fact_cuotas": 7617.89,
-      "ticket": 67.41,
+      "fact_cuotas": 7776.57,
+      "ticket": 68.22,
       "altas": 36,
       "bajas": 11,
       "pruebas": 71
@@ -68,12 +68,24 @@
       "anyo": 2026,
       "mes": 2,
       "clientes": 118,
-      "fact_total": 8961.56,
+      "fact_total": 8953.3,
       "fact_cuotas": 8428.45,
       "ticket": 71.43,
       "altas": 17,
-      "bajas": 12,
-      "pruebas": 36
+      "bajas": 13,
+      "pruebas": 37
+    },
+    {
+      "label": "Mar 26",
+      "anyo": 2026,
+      "mes": 3,
+      "clientes": 113,
+      "fact_total": 8698.27,
+      "fact_cuotas": 8566.01,
+      "ticket": 75.81,
+      "altas": 9,
+      "bajas": 14,
+      "pruebas": 10
     }
   ]
 }

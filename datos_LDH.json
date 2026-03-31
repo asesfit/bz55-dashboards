@@ -13,7 +13,7 @@
       "whatsapp": "+34683460933"
     }
   },
-  "updated_at": "2026-03-24T19:19:07.165Z",
+  "updated_at": "2026-03-31T06:58:20.992Z",
   "meses": [
     {
       "label": "Oct 25",
@@ -80,12 +80,12 @@
       "anyo": 2026,
       "mes": 3,
       "clientes": 117,
-      "fact_total": 9163.23,
+      "fact_total": 9234.31,
       "fact_cuotas": 8742.49,
       "ticket": 74.72,
       "altas": 15,
       "bajas": 16,
-      "pruebas": 32
+      "pruebas": 36
     }
   ]
 }
